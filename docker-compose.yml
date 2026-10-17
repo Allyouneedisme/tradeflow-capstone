@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: tradeflow
+      POSTGRES_PASSWORD: tradeflow_pass
+      POSTGRES_DB: tradeflow_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tradeflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://tradeflow:tradeflow_pass@db:5432/tradeflow_db
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
