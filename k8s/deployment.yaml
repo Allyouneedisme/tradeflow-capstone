@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tradeflow-api
+  namespace: tradeflow
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tradeflow-api
+  template:
+    metadata:
+      labels:
+        app: tradeflow-api
+    spec:
+      containers:
+      - name: tradeflow-api
+        image: abdulfaizan0123/tradeflow:latest
+        imagePullPolicy: Always
+        ports:
+        - name: web
+          containerPort: 8000
+        env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: tradeflow-secrets
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tradeflow-secrets
+              key: DB_PASSWORD
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: tradeflow-secrets
+              key: DB_NAME
+        - name: DATABASE_URL
+          value: "postgresql://$(DB_USER):$(DB_PASSWORD)@postgres-service:5432/$(DB_NAME)"
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tradeflow-ui
+  namespace: tradeflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tradeflow-ui
+  template:
+    metadata:
+      labels:
+        app: tradeflow-ui
+    spec:
+      containers:
+      - name: tradeflow-ui
+        image: abdulfaizan0123/tradeflow:latest
+        command: ["streamlit", "run", "app/ui.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
+        ports:
+        - containerPort: 8501
+        env:
+        - name: API_URL
+          value: "http://tradeflow-service:80"
