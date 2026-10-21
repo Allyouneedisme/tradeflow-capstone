@@ -48,7 +48,7 @@ jobs:
     
     # THIS IS THE FIX: Using the native Docker command instead of the broken action
     - name: Log in to Docker Hub
-      run: echo "dckr_pat_4aUYL5HXAmxrP-E7xTobZHO-_vc" | docker login -u abdulfaizan0123 --password-stdin
+      run: echo "dckr_pat_vPGJwXEgTgm6mO55ES5LZeThIGU" | docker login -u abdulfaizan0123 --password-stdin
       
     - name: Build and push
       uses: docker/build-push-action@v5
